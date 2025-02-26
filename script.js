@@ -1,7 +1,3 @@
-const apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=47.36667&longitude=8.55&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m";
-const forecastApiUrl = "https://api.open-meteo.com/v1/forecast?latitude=47.36667&longitude=8.55&daily=temperature_2m_max,temperature_2m_min,precipitation_sum";
-const uvApiUrl = "https://api.open-meteo.com/v1/forecast?latitude=47.36667&longitude=8.55&current_weather=true";
-
 let city = '';
 
 function getUserLocation() {
@@ -10,12 +6,10 @@ function getUserLocation() {
             position => {
                 const lat = position.coords.latitude;
                 const lon = position.coords.longitude;
-                console.log("Benutzerstandort:", lat, lon);
                 document.getElementById("city-name").textContent = "Aktueller Standort";
                 getWeatherData(lat, lon);
             },
             error => {
-                console.error("Fehler bei der Geolokalisierung:", error);
                 alert("Fehler bei der Standortbestimmung. Fehlercode:" + error.code);
 
                 switch (error.code) {
@@ -52,7 +46,6 @@ document.getElementById("search-btn").addEventListener("click", () => {
     const cityInput = document.getElementById("city").value;
     if (cityInput) {
         city = cityInput;
-        console.log("Eingegeben Stadt:", city);
         document.getElementById("city-name").textContent = city;
         getCoordinates(city);
     } else {
@@ -68,7 +61,7 @@ function fetchCities(query) {
         displaySuggestions(suggestions);
     })
     .catch(error => {
-        console.error("Fehler beim Abrufen der Städtenamen:", error);
+        alert("Fehler beim Abrufen der Städtenamen:", error);
     });
 }
 
@@ -105,15 +98,12 @@ function getCoordinates(city) {
           if (data.results && data.results.length > 0) {
               const lat = data.results[0].latitude;
               const lon = data.results[0].longitude;
-              console.log(`Koordinaten für ${city}: lat = ${lat}, lon = ${lon}`);
               getWeatherData(lat, lon);
           } else {
-              console.error("Stadt nicht gefunden:", data);
               alert("Stadt nicht gefunden");
           }
       })
       .catch(error => {
-          console.error("Fehler beim Abrufen der Koordinaten:", error);
           alert("Fehler beim Abrufen der Stadtkoordinaten.");
       });
 }
@@ -125,7 +115,6 @@ function getWeatherData(lat, lon) {
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,weathercode&timezone=Europe%2FBerlin`)
         .then(response => response.json())
         .then(data => {
-            console.log("API-Antwort für Wetterdaten:", JSON.stringify(data, null, 2));
 
             if (data && data.hourly) {
                 const hourlyData = data.hourly;
@@ -152,14 +141,11 @@ function getWeatherData(lat, lon) {
                 updateCurrentWeather(hourlyData);
                 updateHourlyForecast(next24Hours);
             } else {
-                console.error("Stündliche Daten fehlen. Benutze stattdessen tägliche Daten.");
-                updateDailyForecast(data.daily);
-            }
             fetchUVIndex(lat, lon);
             fetchWeeklyForecast(lat, lon);
+            }
         })
         .catch(error => {
-            console.error("Fehler beim Abrufen der Wetterdaten:", error);
             alert("Fehler beim Abrufen der Wetterdaten.");
         });
 }
@@ -173,12 +159,10 @@ function fetchUVIndex(lat, lon) {
           const uvIndex = data.hourly.uv_index[currentHour];
           document.getElementById("uv-index").textContent = uvIndex !== undefined ? uvIndex : "Unbekannt";
       } else {
-          console.error("UV-Daten nicht verfügbar:", data);
           document.getElementById("uv-index").textContent = "UV-Daten nicht verfügbar";
       }
   })
   .catch(error => {
-      console.error("Fehler beim Abrufen des UV-Index:", error);
       document.getElementById("uv-index").textContent = "UV-Daten nicht verfügbar";
   });
 }
@@ -244,7 +228,7 @@ function updateWeatherIcon(weatherCode) {
     if (iconElement) {
         iconElement.className = iconClass;
     } else {
-        console.error("Das Icon-Element wurde nicht gefunden!");
+        alert("Das Icon-Element wurde nicht gefunden!");
     }
 }
 
@@ -273,10 +257,10 @@ function fetchWeeklyForecast(lat, lon) {
             if (data.daily) {
                 updateWeeklyForecast(data.daily);
             } else {
-                console.error("Fehlerhafte Antwort bei der täglichen Vorhersage:", data);
+                alert("Fehlerhafte Antwort bei der täglichen Vorhersage:", data);
             }
         })
-        .catch(error => console.error("Fehler beim Abrufen der wöchentlichen Vorhersage:", error));
+        .catch(error => alert("Fehler beim Abrufen der wöchentlichen Vorhersage:", error));
 }
   
 function updateWeeklyForecast(dailyForecast) {
